@@ -99,6 +99,22 @@ transform = transforms.Compose([
 - 输出每个文件的预测数字及前两个候选概率，便于分析置信度
 - 支持异常处理，某张图片失败不影响后续处理
 
+##  🗄️ 手写数字识别服务器部署
+### 🔗访问我们的服务器：http://bronya.cloud:8080/
+### Go后端：
+- **框选定位False：**
+```Go
+nohup env BIND_ADDR=:8080 PY_API_URL=http://127.0.0.1:8000/predict FRONTEND_DIR=/root/MNIST/FrontEnd ./mnist-backend >backend.log 2>&1 &
+```
+- **框选定位True：**
+```Go
+nohup env BIND_ADDR=:8080 PY_API_URL=http://127.0.0.1:8000/predict?adaptive=true FRONTEND_DIR=/root/MNIST/FrontEnd ./mnist-backend >backend.log 2>&1 &
+```
+### Python：
+```python
+nohup env /root/MNIST/venv312/bin/uvicorn api_color:app --host 0.0.0.0 --port 8000 >uvicorn.log 2>&1 &
+```
+
 ## 🧩 常见问题与解决方法
 
 ### 1. PyCharm Terminal 激活环境报错
