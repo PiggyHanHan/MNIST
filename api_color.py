@@ -161,7 +161,7 @@ app.add_middleware(
 
 
 @app.post("/predict")
-async def predict(file: UploadFile = File(...), adaptive: bool = False):
+async def predict(file: UploadFile = File(...), adaptive: bool = True):
     """
     上传图片，返回识别结果。
     adaptive 参数：是否启用自适应裁剪（默认False）
