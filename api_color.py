@@ -164,7 +164,7 @@ app.add_middleware(
 async def predict(file: UploadFile = File(...), adaptive: bool = True):
     """
     上传图片，返回识别结果。
-    adaptive 参数：是否启用自适应裁剪（默认False）
+    adaptive 参数：是否启用自适应裁剪（默认True）
     """
     contents = await file.read()
     result = predict_image(contents, use_adaptive_crop=adaptive)
@@ -173,7 +173,7 @@ async def predict(file: UploadFile = File(...), adaptive: bool = True):
 
 @app.get("/")
 async def root():
-    return {"message": "服务已启动，请POST图片到 /predict 接口，可选参数 adaptive=true 启用裁剪"}
+    return {"message": "服务已启动，请POST图片到 /predict 接口，可选参数 adaptive=true/false 启用/关闭裁剪"}
 
 
 if __name__ == "__main__":
