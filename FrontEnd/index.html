@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MNIST Handwritten Digit Recognition</title>
+    <link rel="stylesheet" href="tmp.css">
+    <script src="listener.js" defer></script>
+</head>
+<body>
+    <main class="page">
+        <section class="card">
+            <h1>手写数字识别</h1>
+            <p class="muted">上传一张数字图片（小于 1 MB），后端将调用模型返回预测结果。</p>
+            <div class="uploader" id="dropZone">
+                <input type="file" id="fileInput" accept="image/*" />
+                <label for="fileInput" class="btn">选择图片</label>
+                <p id="fileInfo" class="muted"></p>
+                <p id="error" class="error"></p>
+            </div>
+            <div class="actions">
+                <button id="uploadBtn" class="btn primary" disabled>上传并识别</button>
+            </div>
+            <div class="preview" id="previewContainer" hidden>
+                <img id="preview" alt="预览" />
+            </div>
+            <div class="result" id="result" hidden>
+                <h2>结果</h2>
+                <p>预测：<span id="prediction">-</span></p>
+                <p>置信度：<span id="confidence">-</span></p>
+                <p class="muted" id="top2"></p>
+            </div>
+        </section>
+    </main>
+</body>
+</html>
