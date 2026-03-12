@@ -130,7 +130,7 @@ nohup env BIND_ADDR=:8080 PY_API_URL=http://127.0.0.1:8000/predict?adaptive=true
 ## 📁 项目文件结构
 ```
 EMNIST/
-├── train_mnist_enhanced.py           # 训练脚本（生成模型和类别映射）
+├── train_emnist_enhanced.py           # 训练脚本（生成模型和类别映射）
 ├── batch_predict_enhanced.py          # 批量预测脚本
 ├── api_color.py                        # FastAPI 服务
 ├── emnist_cnn_balanced.pth             # 训练好的模型权重
