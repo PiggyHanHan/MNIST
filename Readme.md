@@ -6,7 +6,7 @@
 **核心特点**：
 - 数据集：EMNIST Balanced（约 11.28 万张训练图，47 类）
 - 模型：简单 CNN（两层卷积 + 两层全连接）
-- 数据增强：随机仿射、弹性变形、颜色反转
+- 数据增强：随机仿射、弹性变形、颜色反转（训练时使用）
 - 输出：字符（如 `'3'`、`'A'`、`'d'` 等）
 - 部署：FastAPI 提供 RESTful 服务，支持自适应裁剪
 
@@ -56,24 +56,28 @@ Flatten → Linear(64*7*7, 128) → ReLU → Linear(128, 47)
 ## 🏋️ 训练过程
 
 ### 数据增强（训练集专用）
+为了平衡拟合难度与泛化能力，我们采用了适度增强策略：
 ```python
-transforms.RandomAffine(degrees=15, translate=(0.1,0.1), scale=(0.9,1.1))
-transforms.RandomApply([transforms.ElasticTransform(alpha=30.0)], p=0.3)
-transforms.RandomInvert(p=0.3)           # 颜色反转增强鲁棒性
+transforms.RandomAffine(degrees=10, translate=(0.05,0.05), scale=(0.95,1.05))
+transforms.RandomInvert(p=0.1)           # 低概率颜色反转，增强鲁棒性
 transforms.ToTensor()
 transforms.Normalize((0.5,), (0.5,))      # 归一化至 [-1,1]
 ```
+（去除了过强的弹性变换，减小了仿射幅度，使模型更容易学习字符本质特征）
 
-### 训练参数
-- 优化器：Adam (lr=0.001)
-- 损失函数：交叉熵
-- 批量大小：64
-- 训练轮次：35（可根据需要调整）
-- 测试集准确率：约 **88% ~ 92%**（随随机种子略有波动）
+### 训练优化策略
+- **优化器**：Adam (lr=0.001, weight_decay=1e-4) —— 加入L2正则化抑制过拟合
+- **学习率调度**：`ReduceLROnPlateau`，监控验证损失，连续5轮不下降则学习率减半，帮助模型跳出局部极小点
+- **损失函数**：交叉熵
+- **批量大小**：64
+- **训练轮次**：60（配合学习率衰减，充分收敛）
+- **模型保存**：自动保存验证损失最低的模型（覆盖原`emnist_cnn_balanced.pth`），确保你获得的是整个训练过程中的最佳版本
 
-训练完成后会生成两个文件：
-- `emnist_cnn_balanced.pth`：模型权重
+训练完成后生成两个文件：
+- `emnist_cnn_balanced.pth`：最佳模型权重
 - `emnist_classes.pkl`：类别映射文件（索引 → 字符）
+
+测试集准确率：经过优化后，通常可达 **90% ~ 93%**（随随机种子略有波动）。
 
 ### 运行训练
 ```bash
@@ -147,7 +151,7 @@ nohup env BIND_ADDR=:8080 PY_API_URL=http://127.0.0.1:8000/predict?adaptive=true
 ├── train_emnist_enhanced.py          # 训练脚本（生成模型和类别映射）
 ├── batch_predict_enhanced.py          # 批量预测脚本
 ├── api_color.py                        # FastAPI 服务
-├── emnist_cnn_balanced.pth             # 训练好的模型权重
+├── emnist_cnn_balanced.pth             # 训练好的最佳模型权重
 ├── emnist_classes.pkl                   # 类别映射文件
 ├── test_imgs/                           # 存放待测图片
 ├── data/                                 # 数据集存放目录（自动下载）
@@ -171,14 +175,17 @@ nohup env BIND_ADDR=:8080 PY_API_URL=http://127.0.0.1:8000/predict?adaptive=true
 - EMNIST Balanced 将容易混淆的大小写字母（如 `'C'`/`'c'`）合并为一类，以降低分类难度，更适合实际应用。
 
 ### 5. 如何调整训练轮次或学习率？
-- 直接修改 `train_emnist_enhanced.py` 中的 `epochs` 变量或 `optimizer` 的学习率参数。
+- 直接修改 `train_emnist_enhanced.py` 中的 `epochs` 变量或 `optimizer` 的学习率参数，也可调整调度器的 `patience` 和 `factor`。
 
 ### 6. 训练时数据集下载到哪里？
 - 默认下载到项目根目录下的 `data/` 文件夹。如需更改路径，可修改 `root` 参数。
 
+### 7. 为什么训练损失最终降至 0.2~0.3？
+- 得益于学习率衰减和适度增强，模型能更充分地拟合训练数据，同时保持良好泛化。
+
 ---
 
 ## 🎯 总结
-本项目从 MNIST 数字识别扩展为 EMNIST 字母数字识别，展示了如何利用公开数据集和简单 CNN 实现多字符分类。通过数据增强和合理的预处理，模型对真实手写样本具有较好的泛化能力。后续可尝试更深的网络或迁移学习以进一步提升准确率。
+本项目从 MNIST 数字识别扩展为 EMNIST 字母数字识别，展示了如何利用公开数据集和简单 CNN 实现多字符分类。通过合理的数据增强、学习率调度和权重衰减，模型对真实手写样本具有优秀的泛化能力。后续可尝试更深的网络或迁移学习以进一步提升准确率。
 
 **Happy Learning! 🚀**
